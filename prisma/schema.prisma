@@ -1,0 +1,68 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String     @id @default(uuid())
+  name         String
+  email        String     @unique
+  passwordHash String
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  resumes      Resume[]
+  analyses     Analysis[]
+
+  @@map("users")
+}
+
+model Resume {
+  id            String     @id @default(uuid())
+  userId        String
+  fileName      String
+  fileType      String
+  fileSize      Int
+  extractedText String
+  storagePath   String?
+  wordCount     Int        @default(0)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  user          User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  analyses      Analysis[]
+
+  @@index([userId])
+  @@map("resumes")
+}
+
+model Analysis {
+  id                  String   @id @default(uuid())
+  userId              String
+  resumeId            String
+  jobDescription      String
+  overallScore        Int
+  atsScore            Int
+  jobMatchPercentage  Int
+  detectedSkills      String   // JSON stringified array
+  matchedSkills       String   // JSON stringified array
+  missingSkills       String   // JSON stringified array
+  keywordsFound       String   // JSON stringified array
+  missingKeywords     String   // JSON stringified array
+  strengths           String   // JSON stringified array
+  areasToImprove      String   // JSON stringified array
+  experienceRelevance String
+  educationRelevance  String
+  projectRelevance    String
+  suggestions         String   // JSON stringified array
+  analysisType        String   @default("Local Analysis")
+  createdAt           DateTime @default(now())
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  resume              Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([resumeId])
+  @@map("analyses")
+}
